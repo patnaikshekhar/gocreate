@@ -13,7 +13,7 @@ func main() {
 
 	e.Static("/", "ui/dist")
 
-	err := e.Start(":1323")
+	err := e.Start("{{ .BackendPort }}")
 	if err != nil {
 		e.Logger.Fatal(err)
 	}
