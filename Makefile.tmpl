@@ -8,9 +8,14 @@ build-frontend:
 	npm install && \
 	npm run build
 
-.PHONY: run
-run: build
-	./bin/{{ .ProjectName }}
+.PHONY: run-frontend
+run-frontend:
+	cd ui && \
+	npm run dev
+
+.PHONY: run-backend
+run-backend:
+	go run main.go
 
 .PHONY: build-all
 build-all: build-backend build-frontend
