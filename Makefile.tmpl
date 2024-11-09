@@ -18,7 +18,8 @@ run-frontend:
 #	./bin/{{ .ProjectName }}
 
 .PHONY: run-backend
-go run main.go
+run-backend:
+	go run main.go
 
 .PHONY: build-all
 build-all: build-backend build-frontend
