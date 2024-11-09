@@ -14,8 +14,8 @@ run-frontend:
 	npm run dev
 
 .PHONY: run-backend
-run-backend:
-	go run main.go
+run-backend: build-backend
+	./bin/{{ .ProjectName }}
 
 .PHONY: build-all
 build-all: build-backend build-frontend
