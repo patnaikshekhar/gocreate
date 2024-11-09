@@ -13,9 +13,12 @@ run-frontend:
 	cd ui && \
 	npm run dev
 
+# .PHONY: run-backend
+# run-backend: build-backend
+#	./bin/{{ .ProjectName }}
+
 .PHONY: run-backend
-run-backend: build-backend
-	./bin/{{ .ProjectName }}
+go run main.go
 
 .PHONY: build-all
 build-all: build-backend build-frontend
