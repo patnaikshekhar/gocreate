@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -11,8 +13,8 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	e.Get("/api/test", func(c *echo.Context) error {
-		c.JSON([]struct{ Result bool }{Result: true})
+	e.GET("/api/test", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, struct{ Result bool }{Result: true})
 	})
 
 	e.Static("/", "ui/dist")
