@@ -11,6 +11,10 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	e.Get("/api/test", func(c *echo.Context) error {
+		c.JSON([]struct{ Result bool }{Result: true})
+	})
+
 	e.Static("/", "ui/dist")
 
 	err := e.Start(":{{ .BackendPort }}")

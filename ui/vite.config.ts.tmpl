@@ -10,6 +10,12 @@ export default defineConfig({
     },
   },
   server: {
-    port: {{ .FrontendPort }}
+    port: {{ .FrontendPort }},
+    proxy: {
+      "/api": {
+        target: "http://localhost:{{ .BackendPort }}",
+        changeOrigin: true,
+      },
+    },
   },
 })
