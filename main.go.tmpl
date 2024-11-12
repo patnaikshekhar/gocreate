@@ -13,7 +13,7 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	e.GET("/api/test", func(c echo.Context) error {
+	e.GET("/api/v1/test", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, struct{ Result bool }{Result: true})
 	})
 
