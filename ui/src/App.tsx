@@ -4,7 +4,7 @@ import './App.css'
 function App() {
 
   const fetchData = async () => {
-    const response = await fetch("/api/v1/test")
+    const response = await fetch("/api/v1/healthz")
     const data = await response.json()
     console.log(data)
   }

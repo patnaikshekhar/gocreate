@@ -1,9 +1,9 @@
 package main
 
 import (
-	"net/http"
 	"os"
 	"sample/internal/db"
+	"sample/internal/routes"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -30,9 +30,7 @@ func main() {
 		}
 	})
 
-	e.GET("/api/v1/test", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, struct{ Result bool }{Result: true})
-	})
+	e.GET("/api/v1/healthz", routes.Healthz)
 
 	e.Static("/", "ui/dist")
 
