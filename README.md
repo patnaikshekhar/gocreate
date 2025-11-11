@@ -1,173 +1,90 @@
-# Sample Go Web Application
+# Sample Go + React Starter
 
-A full-stack web application built with Go (Echo framework) on the backend and React with TypeScript on the frontend.
+This repository provides a minimal full-stack scaffolding with a Go backend powered by Echo and a React + TypeScript frontend built on Vite and Tailwind CSS. It is intentionally lightweight so you can plug in additional routes, database models, and UI features while keeping the backend and frontend in the same tree.
 
-## Architecture
+## Highlights
+- Echo-based HTTP API with logging and panic recovery middleware
+- Database helper that can open either PostgreSQL or SQLite connections
+- React UI wired with Tailwind CSS, shadcn/ui components, and path aliases
+- Example health-check endpoint consumed by the frontend to demonstrate API integration
+- Template files (`*.tmpl`) so you can rename the project and standardise ports
 
-This project consists of two main components:
-
-- **Backend**: Go server using the Echo web framework
-- **Frontend**: React application with TypeScript and Vite
-
-## Features
-
-- RESTful API with health check endpoint
-- Database abstraction layer supporting multiple databases (PostgreSQL, SQLite)
-- React frontend with Tailwind CSS and shadcn/ui components
-- Middleware for logging and error recovery
-
-## Tech Stack
-
-### Backend
-- [Go](https://golang.org/) 1.22.3
-- [Echo](https://echo.labstack.com/) v4 - Web framework
-- [PostgreSQL](https://www.postgresql.org/) / [SQLite](https://www.sqlite.org/) - Database support
-- Environment-based configuration
-
-### Frontend
-- [React](https://react.dev/) with TypeScript
-- [Vite](https://vitejs.dev/) - Build tool
-- [Tailwind CSS](https://tailwindcss.com/) - Styling
-- [shadcn/ui](https://ui.shadcn.com/) - UI components
-
-## Project Structure
-
+## Project Layout
 ```
 .
-├── main.go                 # Application entry point
-├── go.mod                  # Go module dependencies
+├── main.go                 # Echo server wiring routes, middleware, and static assets
 ├── internal/
-│   ├── db/                 # Database abstraction layer
-│   │   └── db.go
-│   └── routes/             # API route handlers
-│       └── routes.go
-└── ui/                     # Frontend React application
-    ├── src/
-    │   ├── App.tsx         # Main React component
-    │   ├── main.tsx        # React entry point
-    │   └── components/     # React components
-    └── package.json
+│   ├── db/db.go            # database/sql opener with PostgreSQL and SQLite drivers
+│   ├── models/             # placeholder for domain models
+│   └── routes/routes.go    # API route handlers
+├── ui/                     # Vite + React frontend application
+│   ├── src/App.tsx         # Example button invoking the health endpoint
+│   ├── src/components/ui/  # shadcn/ui button implementation
+│   ├── src/lib/utils.ts    # Tailwind utility helper
+│   └── package.json.tmpl   # Template for the frontend package manifest
+├── go copy.tmpl            # Helper template for generating an alternative go.mod
+├── main.go.tmpl            # Template version of the server with tokenised ports
+└── Makefile.tmpl           # Optional helper targets for build and run workflows
 ```
 
 ## Prerequisites
+- Go 1.22 or newer
+- Node.js 18+ (Vite works best with 18 or 20) and npm
+- SQLite or PostgreSQL (only required if you plan to exercise the database helper)
 
-- Go 1.22.3 or higher
-- Node.js and npm (for frontend development)
-- PostgreSQL or SQLite (depending on your configuration)
+## Configure the Templates
+Several files include `{{ ... }}` placeholders so you can tailor the project name and ports:
 
-## Setup
+1. **Backend port** – Update `main.go` to listen on a concrete port, e.g. `e.Start(":8080")`. Mirror the change in `main.go.tmpl` if you plan to reuse the template.
+2. **Module name** – If you want a different module path for Go, copy `go copy.tmpl` over `go.mod` and replace `{{ .ProjectName }}` with your desired module (the committed `go.mod` already uses `module sample`).
+3. **Frontend manifest** – Copy `ui/package.json.tmpl` to `ui/package.json` and replace `{{ .ProjectName }}` with the desired npm package name. The accompanying `ui/package-lock.json` still contains the placeholder string; feel free to regenerate it after running `npm install`.
+4. **Vite config** – Copy `ui/vite.config.ts.tmpl` to `ui/vite.config.ts` and replace `{{ .FrontendPort }}` / `{{ .BackendPort }}` with the values you picked so the dev server can proxy API calls correctly.
+5. **Document title** – `ui/index.html` contains `{{ .ProjectName }}` in the `<title>` tag; update it if you want a custom browser tab title.
+6. **Makefile** – Rename `Makefile.tmpl` to `Makefile` to enable the predefined `make build-backend`, `make build-frontend`, and `make run-backend` targets.
 
-### Environment Variables
+Once the placeholders are replaced, the backend and frontend can run without additional templating infrastructure.
 
-Create a `.env` file or set the following environment variables:
+## Backend Setup
+1. Export the database settings that `internal/db` expects:
+   ```bash
+   export DB_TYPE=sqlite3
+   export DB_CONNECTION_STRING=./sample.db     # or a PostgreSQL DSN
+   ```
+2. Download dependencies (if needed) and start the server:
+   ```bash
+   go mod tidy
+   go run main.go
+   ```
+   The server enables Echo's logger and recover middleware, stores the opened database connection on each request context (`c.Get("db")`), and serves files from `ui/dist` for the UI.
 
-```bash
-DB_TYPE=sqlite3                    # or "postgres"
-DB_CONNECTION_STRING=./db.sqlite   # or PostgreSQL connection string
-```
+The API currently exposes a single endpoint:
 
-For PostgreSQL:
-```bash
-DB_TYPE=postgres
-DB_CONNECTION_STRING=postgres://user:password@localhost:5432/dbname?sslmode=disable
-```
+| Method | Path             | Description                         |
+| ------ | ---------------- | ----------------------------------- |
+| GET    | `/api/v1/healthz` | Returns `{ "Result": true }` for health checks |
 
-### Backend Setup
+## Frontend Setup
+After creating `ui/package.json` from the template:
 
-1. Install Go dependencies:
-```bash
-go mod download
-```
-
-2. Build the application:
-```bash
-go build -o app
-```
-
-3. Run the application:
-```bash
-export DB_TYPE=sqlite3
-export DB_CONNECTION_STRING=./db.sqlite
-./app
-```
-
-Or run directly:
-```bash
-go run main.go
-```
-
-### Frontend Setup
-
-1. Navigate to the UI directory:
 ```bash
 cd ui
-```
-
-2. Install dependencies:
-```bash
 npm install
+npm run dev    # starts Vite (defaults to http://localhost:5173)
 ```
 
-3. For development (with hot reload):
-```bash
-npm run dev
-```
+The sample button in `src/App.tsx` issues a fetch to `/api/v1/healthz` and logs the response, demonstrating how the frontend talks to the backend. When you are ready to serve the UI from Go, build the production assets:
 
-4. Build for production:
 ```bash
 npm run build
 ```
 
-The built files will be placed in `ui/dist/` and served by the Go backend.
+The compiled files will be placed in `ui/dist` and automatically served by the Echo server.
 
-## API Endpoints
+## Database Notes
+The helper in `internal/db` is intentionally thin—it wraps `database/sql` and relies on Go's standard driver registration. There is no migration tooling or ORM included, so bring your own (for example, `golang-migrate`, `sqlc`, or plain SQL files) and store related code under `internal/models` or another package of your choosing.
 
-### Health Check
-```
-GET /api/v1/healthz
-```
-
-Returns the health status of the application.
-
-**Response:**
-```json
-{
-  "Result": true
-}
-```
-
-## Development
-
-### Running the Full Stack
-
-1. Build the frontend:
-```bash
-cd ui && npm run build && cd ..
-```
-
-2. Start the backend (which will serve the frontend):
-```bash
-go run main.go
-```
-
-The application will be available at `http://localhost:8080` (default port may vary based on configuration).
-
-### Database
-
-The application uses a database abstraction layer that supports:
-- SQLite (for development/testing)
-- PostgreSQL (for production)
-
-Configure via environment variables as shown in the Setup section.
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is provided as-is for educational and development purposes.
+## Next Steps
+- Flesh out additional routes inside `internal/routes` and mount them in `main.go`.
+- Expand the frontend by adding components under `ui/src/components` and state management as needed.
+- Add automated tests (`go test ./...` for the backend, Vitest/RTL for the frontend) and CI/check scripts as the project grows.
+- Consider generating a real `Makefile` from `Makefile.tmpl` or wiring task runners to streamline local workflows.
